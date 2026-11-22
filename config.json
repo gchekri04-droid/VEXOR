@@ -1,0 +1,7 @@
+{
+  "assistant_name": "KAIRO",
+  "your_name": "",
+  "model": "llama3.2",
+  "speak_replies": true,
+  "voice_rate": 185
+}
