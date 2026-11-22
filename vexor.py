@@ -77,6 +77,7 @@ class VexorApp:
         self.f_disp = hud.pick_font(root, "Bahnschrift", "Segoe UI Semibold", "DejaVu Sans")
         self.f_body = hud.pick_font(root, "Segoe UI", "Inter", "DejaVu Sans")
         self.f_mono = hud.pick_font(root, "Cascadia Mono", "Consolas", "DejaVu Sans Mono")
+        self.f_serif = hud.pick_font(root, "Constantia", "Georgia", "DejaVu Serif")
         self._build_ui()
         root.after(50, self._drain_ui_queue)
 
@@ -94,7 +95,7 @@ class VexorApp:
         self.core.pack(side="left")
         titles = tk.Frame(top, bg=BG)
         titles.pack(side="left", padx=(10, 0))
-        tk.Label(titles, text=self.name, fg=TEXT, bg=BG, font=(self.f_disp, 20, "bold")).pack(anchor="w")
+        tk.Label(titles, text=" ".join(self.name), fg=TEXT, bg=BG, font=(self.f_serif, 21)).pack(anchor="w")
         self.status = tk.Label(titles, text="STARTING…", fg=DIM, bg=BG, font=(self.f_mono, 9))
         self.status.pack(anchor="w")
 
@@ -120,8 +121,8 @@ class VexorApp:
                             font=(self.f_body, 11), padx=16, pady=14, state="disabled",
                             insertbackground=TEXT, spacing1=2, spacing3=2, highlightthickness=0)
         self.chat.pack(fill="both", expand=True)
-        self.chat.tag_configure("you", foreground=USER, font=(self.f_disp, 11, "bold"))
-        self.chat.tag_configure("bot", foreground=ACCENT, font=(self.f_disp, 11, "bold"))
+        self.chat.tag_configure("you", foreground=hud.GOLD, font=(self.f_body, 11, "bold"))
+        self.chat.tag_configure("bot", foreground=ACCENT, font=(self.f_body, 11, "bold"))
         self.chat.tag_configure("err", foreground=ERR)
         self.chat.tag_configure("dim", foreground=DIM, font=(self.f_mono, 10))
         self.dots = hud.Dots(self.chat)
