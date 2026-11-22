@@ -1,4 +1,4 @@
-"""KAIRO's brain: talks to a free local AI model through Ollama (https://ollama.com).
+"""VEXOR's brain: talks to a free local AI model through Ollama (https://ollama.com).
 
 Ollama runs on your own PC, so there is no API key and no cost per message.
 """

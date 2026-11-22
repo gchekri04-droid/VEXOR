@@ -1,4 +1,4 @@
-"""Built-in commands KAIRO can do on your PC instantly, without the AI brain.
+"""Built-in commands VEXOR can do on your PC instantly, without the AI brain.
 
 handle(text) returns a reply string if the text was a command, otherwise None
 (then the question goes to the AI brain instead).
@@ -125,7 +125,7 @@ def _open_path(path):
     return True
 
 
-def handle(text, assistant_name="KAIRO"):
+def handle(text, assistant_name="VEXOR"):
     t = text.lower().strip().rstrip("?.!")
     t = re.sub(rf"^(hey |ok |okay )?{assistant_name.lower()}[,\s]*", "", t).strip()
     if not t:

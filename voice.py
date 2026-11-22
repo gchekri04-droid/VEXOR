@@ -1,7 +1,7 @@
-"""KAIRO's voice: speaks with pyttsx3 (offline, uses Windows' built-in voices)
+"""VEXOR's voice: speaks with pyttsx3 (offline, uses Windows' built-in voices)
 and listens with SpeechRecognition (uses Google's free web speech service, needs internet).
 
-Both are optional: if they aren't installed, KAIRO still works by typing.
+Both are optional: if they aren't installed, VEXOR still works by typing.
 """
 import queue
 import threading

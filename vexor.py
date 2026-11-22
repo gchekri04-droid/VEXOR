@@ -1,6 +1,6 @@
-"""KAIRO — your personal desktop assistant.
+"""VEXOR — your personal desktop assistant.
 
-Run:  python kairo.py   (or double-click Start-KAIRO.bat)
+Run:  python vexor.py   (or double-click Start-VEXOR.bat)
 """
 import json
 import os
@@ -16,7 +16,7 @@ from voice import Voice
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(HERE, "config.json")
 DEFAULT_CONFIG = {
-    "assistant_name": "KAIRO",
+    "assistant_name": "VEXOR",
     "your_name": "",
     "model": "llama3.2",
     "speak_replies": True,
@@ -55,7 +55,7 @@ def system_prompt(cfg):
     )
 
 
-class KairoApp:
+class VexorApp:
     def __init__(self, root):
         self.root = root
         self.cfg = load_config()
@@ -290,7 +290,7 @@ class KairoApp:
 
 def main():
     root = tk.Tk()
-    KairoApp(root)
+    VexorApp(root)
     root.mainloop()
 
 

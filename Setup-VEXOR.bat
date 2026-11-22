@@ -1,8 +1,8 @@
 @echo off
-title KAIRO Setup
+title VEXOR Setup
 cd /d "%~dp0"
 echo ============================================
-echo   KAIRO setup - this may take 5-15 minutes
+echo   VEXOR setup - this may take 5-15 minutes
 echo ============================================
 echo.
 
@@ -12,30 +12,30 @@ if errorlevel 1 (
   echo [1/5] Python not found. Installing Python 3.12 with winget...
   winget install --id Python.Python.3.12 -e --accept-package-agreements --accept-source-agreements
   echo.
-  echo Python installed. CLOSE this window and double-click Setup-KAIRO.bat again.
+  echo Python installed. CLOSE this window and double-click Setup-VEXOR.bat again.
   pause
   exit /b
 )
 echo [1/5] Python found.
 
-REM ---- 2. Private Python environment for KAIRO ----
+REM ---- 2. Private Python environment for VEXOR ----
 if not exist ".venv\Scripts\python.exe" (
-  echo [2/5] Creating KAIRO's Python environment...
+  echo [2/5] Creating VEXOR's Python environment...
   py -3 -m venv .venv
 )
 ".venv\Scripts\python.exe" -m pip install --upgrade pip >nul
 echo [2/5] Installing voice packages...
 ".venv\Scripts\python.exe" -m pip install -r requirements.txt
 ".venv\Scripts\python.exe" -m pip install pyaudio
-if errorlevel 1 echo    (PyAudio failed - KAIRO will still speak, but the Talk button won't work.)
+if errorlevel 1 echo    (PyAudio failed - VEXOR will still speak, but the Talk button won't work.)
 
 REM ---- 3. Ollama (free local AI brain) ----
 where ollama >nul 2>nul
 if errorlevel 1 (
-  echo [3/5] Installing Ollama, KAIRO's free AI brain...
+  echo [3/5] Installing Ollama, VEXOR's free AI brain...
   winget install --id Ollama.Ollama -e --accept-package-agreements --accept-source-agreements
   echo.
-  echo Ollama installed. CLOSE this window and double-click Setup-KAIRO.bat again.
+  echo Ollama installed. CLOSE this window and double-click Setup-VEXOR.bat again.
   pause
   exit /b
 )
@@ -49,10 +49,10 @@ ollama pull llama3.2
 
 REM ---- 5. Desktop shortcut ----
 echo [5/5] Creating desktop shortcut...
-powershell -NoProfile -Command "$s=(New-Object -ComObject WScript.Shell).CreateShortcut([Environment]::GetFolderPath('Desktop')+'\KAIRO.lnk'); $s.TargetPath='%~dp0Start-KAIRO.bat'; $s.WorkingDirectory='%~dp0'; $s.WindowStyle=7; $s.Save()"
+powershell -NoProfile -Command "$s=(New-Object -ComObject WScript.Shell).CreateShortcut([Environment]::GetFolderPath('Desktop')+'\VEXOR.lnk'); $s.TargetPath='%~dp0Start-VEXOR.bat'; $s.WorkingDirectory='%~dp0'; $s.WindowStyle=7; $s.Save()"
 
 echo.
 echo ============================================
-echo   Done! Double-click KAIRO on your desktop.
+echo   Done! Double-click VEXOR on your desktop.
 echo ============================================
 pause

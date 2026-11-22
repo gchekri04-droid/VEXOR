@@ -1,25 +1,25 @@
-# KAIRO — your personal desktop assistant
+# VEXOR — your personal desktop assistant
 
-KAIRO (from the Greek *kairos*, "the right moment") is a free assistant for Windows that
+VEXOR is a free assistant for Windows that
 chats, talks back, controls your PC, and helps you learn GitHub.
 
 ## Install (one time)
-1. Unzip this folder somewhere permanent, e.g. `Documents\KAIRO`.
-2. Double-click **Setup-KAIRO.bat**. If Windows shows "Windows protected your PC",
+1. Unzip this folder somewhere permanent, e.g. `Documents\VEXOR`.
+2. Double-click **Setup-VEXOR.bat**. If Windows shows "Windows protected your PC",
    click **More info → Run anyway** (it's a plain-text script; you can open it in Notepad to read it first).
 3. If it installs Python or Ollama, it will ask you to **close the window and run Setup again** — do that.
-4. Wait for the AI model download (about 2 GB). When it says **Done**, a **KAIRO** icon is on your desktop.
+4. Wait for the AI model download (about 2 GB). When it says **Done**, a **VEXOR** icon is on your desktop.
 
 ## Starter Kit (optional, recommended)
 Double-click **Starter-Kit.bat** to install the best free beginner tools — Git, VS Code,
 GitHub CLI, PowerToys, LocalSend — download a practice repo to `Documents\GitHub`,
-and open the best learning pages. In KAIRO, type **learn** to see the learning path.
+and open the best learning pages. In VEXOR, type **learn** to see the learning path.
 
 ## Use
-- Double-click **KAIRO** on your desktop. The first time, it asks your name.
+- Double-click **VEXOR** on your desktop. The first time, it asks your name.
 - Type and press Enter, or click **🎤 Talk** (or press Ctrl+Space) and speak.
 - Say **help** to see instant commands: open apps/websites/folders, search, time, lock PC.
-- **Commit message**: pick a repo folder and KAIRO writes a commit message from your changes
+- **Commit message**: pick a repo folder and VEXOR writes a commit message from your changes
   and copies it — paste it into GitHub Desktop's Summary box.
 - Untick **Speak replies** to make it silent.
 

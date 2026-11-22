@@ -1,8 +1,8 @@
 @echo off
-title KAIRO Starter Kit
+title VEXOR Starter Kit
 cd /d "%~dp0"
 echo ======================================================
-echo   KAIRO Starter Kit - the best free tools for beginners
+echo   VEXOR Starter Kit - the best free tools for beginners
 echo ======================================================
 echo This installs: Git, VS Code, GitHub CLI, PowerToys, LocalSend
 echo and downloads the "first-contributions" practice repo.
@@ -36,7 +36,7 @@ echo.
 echo ======================================================
 echo  Done! Your browser opened 3 learning pages.
 echo  Start with first-contributions: follow its steps.
-echo  Tip: in KAIRO type "learn" to see these again.
+echo  Tip: in VEXOR type "learn" to see these again.
 echo ======================================================
 pause
 exit /b
