@@ -214,8 +214,9 @@ class VexorApp:
 
     def _ask_brain(self, text):
         self.busy = True
-        self._set_status("Thinking…", ACCENT)
+        self._set_status("Thinking… (the first answer can take a minute)", ACCENT)
         self._write(f"{self.name}: ", "bot")
+        speak = self.speak_var.get()  # read Tk variables on the UI thread only
 
         def work():
             parts = []
@@ -224,7 +225,7 @@ class VexorApp:
                     parts.append(piece)
                     self._ui(self._write, piece)
                 self._ui(self._write, "\n\n")
-                if self.speak_var.get():
+                if speak:
                     self.voice.speak("".join(parts))
                 self._ui(self._set_status, f"● Brain online ({self.brain.model})", ACCENT)
             except Exception as e:
