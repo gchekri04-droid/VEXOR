@@ -1,15 +1,24 @@
-"""VEXOR's voice: speaks with pyttsx3 (offline, uses Windows' built-in voices)
-and listens with SpeechRecognition (uses Google's free web speech service, needs internet).
+"""VEXOR's voice.
+
+Speaking: on Windows, uses the built-in Windows speech engine (System.Speech) in a
+separate PowerShell process, so it can never block VEXOR's window. Elsewhere, falls back to pyttsx3.
+Listening: SpeechRecognition (Google's free web speech service, needs internet).
 
 Both are optional: if they aren't installed, VEXOR still works by typing.
 """
 import queue
+import subprocess
+import sys
 import threading
 
-try:
-    import pyttsx3
-except Exception:  # not installed or no voice engine
-    pyttsx3 = None
+IS_WINDOWS = sys.platform.startswith("win")
+
+pyttsx3 = None
+if not IS_WINDOWS:  # on Windows we use the built-in speech engine instead (see below)
+    try:
+        import pyttsx3
+    except Exception:  # not installed or no voice engine
+        pyttsx3 = None
 
 try:
     import speech_recognition as sr
@@ -20,7 +29,7 @@ except Exception:
 class Voice:
     def __init__(self, rate=185):
         self.rate = rate
-        self.can_speak = pyttsx3 is not None
+        self.can_speak = IS_WINDOWS or pyttsx3 is not None
         self.can_listen = False
         self.listen_error = ""
         if sr is None:
@@ -44,13 +53,28 @@ class Voice:
         while True:
             text = self._q.get()
             try:
-                engine = pyttsx3.init()  # fresh engine each time is most reliable on Windows
-                engine.setProperty("rate", self.rate)
-                engine.say(text)
-                engine.runAndWait()
-                engine.stop()
+                if IS_WINDOWS:
+                    self._speak_windows(text)
+                else:
+                    engine = pyttsx3.init()
+                    engine.setProperty("rate", self.rate)
+                    engine.say(text)
+                    engine.runAndWait()
+                    engine.stop()
             except Exception:
                 pass
+
+    def _speak_windows(self, text):
+        # Map words-per-minute to the Windows speech rate scale (-10 .. 10, 0 = normal).
+        rate = max(-10, min(10, round((self.rate - 170) / 15)))
+        script = ("[Console]::InputEncoding = [Text.Encoding]::UTF8; "
+                  "Add-Type -AssemblyName System.Speech; "
+                  "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+                  f"$s.Rate = {rate}; "
+                  "$s.Speak([Console]::In.ReadToEnd())")
+        subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+                       input=text.encode("utf-8"), creationflags=0x08000000,  # no console window
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=300)
 
     # ---------- listening ----------
     def listen(self, timeout=6, phrase_limit=15):
