@@ -3,6 +3,7 @@
 Run:  python vexor.py   (or double-click Start-VEXOR.bat)
 """
 import json
+import logging
 import os
 import queue
 import threading
@@ -14,6 +15,9 @@ from brain import Brain
 from voice import Voice
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+logging.basicConfig(filename=os.path.join(HERE, "vexor.log"), level=logging.INFO,
+                    format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("vexor")
 CONFIG_PATH = os.path.join(HERE, "config.json")
 DEFAULT_CONFIG = {
     "assistant_name": "VEXOR",
@@ -220,15 +224,20 @@ class VexorApp:
 
         def work():
             parts = []
+            log.info("question sent to brain (%d chars)", len(text))
             try:
                 for piece in self.brain.chat_stream(text):
+                    if not parts:
+                        log.info("first words received")
                     parts.append(piece)
                     self._ui(self._write, piece)
                 self._ui(self._write, "\n\n")
                 if speak:
                     self.voice.speak("".join(parts))
                 self._ui(self._set_status, f"● Brain online ({self.brain.model})", ACCENT)
+                log.info("answer complete (%d chars)", len("".join(parts)))
             except Exception as e:
+                log.exception("brain request failed")
                 self.brain.history = self.brain.history[:-1]  # drop the unanswered question
                 self._ui(self._write, f"I couldn't reach my AI brain ({e}).\n"
                                       "Make sure the Ollama app is running, then click Reconnect.\n\n", "err")
@@ -251,10 +260,10 @@ class VexorApp:
             text, err = self.voice.listen()
             self.busy = False
             self._ui(self.mic_btn.configure, {"text": "🎤 Talk", "bg": "#1e293b"})
-            self._ui(self._check_brain_quiet)
             if text:
-                self._ui(self._submit, text)
+                self._ui(self._submit, text)  # sets "Thinking…" itself
             else:
+                self._ui(self._check_brain_quiet)
                 self._ui(self._say, err, "err", False)
         threading.Thread(target=work, daemon=True).start()
 
