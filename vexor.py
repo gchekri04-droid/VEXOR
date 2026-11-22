@@ -99,6 +99,8 @@ class VexorApp:
                            ("Reconnect", self._check_brain)):
             self._button(bar, label, cmd, small=True).pack(side="left", padx=(0, 6))
 
+        bottom = tk.Frame(self.root, bg=BG)
+        bottom.pack(side="bottom", fill="x", padx=16, pady=12)  # packed first so it is never cut off
         self.chat = tk.Text(self.root, bg=PANEL, fg=TEXT, wrap="word", relief="flat",
                             font=("Segoe UI", 11), padx=14, pady=12, state="disabled",
                             insertbackground=TEXT)
@@ -108,8 +110,6 @@ class VexorApp:
         self.chat.tag_configure("err", foreground=ERR)
         self.chat.tag_configure("dim", foreground=DIM)
 
-        bottom = tk.Frame(self.root, bg=BG)
-        bottom.pack(fill="x", padx=16, pady=12)
         self.entry = tk.Entry(bottom, bg=PANEL, fg=TEXT, relief="flat", font=("Segoe UI", 12),
                               insertbackground=TEXT)
         self.entry.pack(side="left", fill="x", expand=True, ipady=8)
@@ -178,6 +178,12 @@ class VexorApp:
         self.chat.configure(state="disabled")
         self._say("Fresh start. What's next?", speak=False)
 
+    def _check_brain_quiet(self):
+        def work():
+            ok, msg = self.brain.status()
+            self._ui(self._set_status, ("● " if ok else "○ ") + msg, ACCENT if ok else ERR)
+        threading.Thread(target=work, daemon=True).start()
+
     def _check_brain(self):
         def work():
             ok, msg = self.brain.status()
@@ -244,7 +250,7 @@ class VexorApp:
             text, err = self.voice.listen()
             self.busy = False
             self._ui(self.mic_btn.configure, {"text": "🎤 Talk", "bg": "#1e293b"})
-            self._ui(self._set_status, "", DIM)
+            self._ui(self._check_brain_quiet)
             if text:
                 self._ui(self._submit, text)
             else:
