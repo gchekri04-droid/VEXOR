@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import filedialog, simpledialog
 
 import commands
+import hud
 from brain import Brain
 from voice import Voice
 
@@ -27,9 +28,8 @@ DEFAULT_CONFIG = {
     "voice_rate": 185,
 }
 
-# ---- colours (dark "HUD" theme) ----
-BG, PANEL, ACCENT, TEXT, DIM, USER, ERR = (
-    "#0b1120", "#111a2e", "#22d3ee", "#e2e8f0", "#64748b", "#a78bfa", "#f87171")
+# ---- colours (futuristic HUD theme, shared with hud.py) ----
+BG, PANEL, ACCENT, TEXT, DIM, USER, ERR = hud.BG, hud.PANEL, hud.CYAN, hud.TEXT, hud.MUTED, hud.VIOLET, hud.ERR
 
 
 def load_config():
@@ -70,9 +70,13 @@ class VexorApp:
         self.busy = False
 
         root.title(f"{self.name} — Personal Assistant")
-        root.geometry("760x620")
-        root.minsize(520, 420)
+        root.geometry("820x660")
+        root.minsize(560, 460)
         root.configure(bg=BG)
+        hud.fade_in(root)
+        self.f_disp = hud.pick_font(root, "Bahnschrift", "Segoe UI Semibold", "DejaVu Sans")
+        self.f_body = hud.pick_font(root, "Segoe UI", "Inter", "DejaVu Sans")
+        self.f_mono = hud.pick_font(root, "Cascadia Mono", "Consolas", "DejaVu Sans Mono")
         self._build_ui()
         root.after(50, self._drain_ui_queue)
 
@@ -85,49 +89,60 @@ class VexorApp:
     # ================= UI =================
     def _build_ui(self):
         top = tk.Frame(self.root, bg=BG)
-        top.pack(fill="x", padx=16, pady=(14, 6))
-        tk.Label(top, text=f"◉ {self.name}", fg=ACCENT, bg=BG,
-                 font=("Segoe UI", 20, "bold")).pack(side="left")
-        self.status = tk.Label(top, text="Starting…", fg=DIM, bg=BG, font=("Segoe UI", 10))
-        self.status.pack(side="left", padx=14)
+        top.pack(fill="x", padx=18, pady=(14, 8))
+        self.core = hud.Core(top, size=46)
+        self.core.pack(side="left")
+        titles = tk.Frame(top, bg=BG)
+        titles.pack(side="left", padx=(10, 0))
+        tk.Label(titles, text=self.name, fg=TEXT, bg=BG, font=(self.f_disp, 20, "bold")).pack(anchor="w")
+        self.status = tk.Label(titles, text="STARTING…", fg=DIM, bg=BG, font=(self.f_mono, 9))
+        self.status.pack(anchor="w")
 
         self.speak_var = tk.BooleanVar(value=self.cfg["speak_replies"])
         tk.Checkbutton(top, text="Speak replies", variable=self.speak_var, command=self._toggle_speak,
-                       fg=TEXT, bg=BG, selectcolor=PANEL, activebackground=BG,
-                       activeforeground=TEXT, font=("Segoe UI", 10)).pack(side="right")
+                       fg=DIM, bg=BG, selectcolor=PANEL, activebackground=BG, highlightthickness=0, bd=0,
+                       activeforeground=TEXT, font=(self.f_body, 10)).pack(side="right")
+
+        hud.Trace(self.root, height=2).pack(fill="x", padx=18)
 
         bar = tk.Frame(self.root, bg=BG)
-        bar.pack(fill="x", padx=16, pady=(0, 6))
+        bar.pack(fill="x", padx=18, pady=(10, 8))
         for label, cmd in (("Commit message", self._commit_message), ("Git help", lambda: self._submit("git help")),
                            ("Commands", lambda: self._submit("help")), ("New chat", self._new_chat),
                            ("Reconnect", self._check_brain)):
             self._button(bar, label, cmd, small=True).pack(side="left", padx=(0, 6))
 
         bottom = tk.Frame(self.root, bg=BG)
-        bottom.pack(side="bottom", fill="x", padx=16, pady=12)  # packed first so it is never cut off
-        self.chat = tk.Text(self.root, bg=PANEL, fg=TEXT, wrap="word", relief="flat",
-                            font=("Segoe UI", 11), padx=14, pady=12, state="disabled",
-                            insertbackground=TEXT)
-        self.chat.pack(fill="both", expand=True, padx=16)
-        self.chat.tag_configure("you", foreground=USER, font=("Segoe UI", 11, "bold"))
-        self.chat.tag_configure("bot", foreground=ACCENT, font=("Segoe UI", 11, "bold"))
+        bottom.pack(side="bottom", fill="x", padx=18, pady=14)  # packed first so it is never cut off
+        frame = tk.Frame(self.root, bg=hud.LINE, padx=1, pady=1)  # 1px border around the chat
+        frame.pack(fill="both", expand=True, padx=18)
+        self.chat = tk.Text(frame, bg=PANEL, fg=TEXT, wrap="word", relief="flat", bd=0,
+                            font=(self.f_body, 11), padx=16, pady=14, state="disabled",
+                            insertbackground=TEXT, spacing1=2, spacing3=2, highlightthickness=0)
+        self.chat.pack(fill="both", expand=True)
+        self.chat.tag_configure("you", foreground=USER, font=(self.f_disp, 11, "bold"))
+        self.chat.tag_configure("bot", foreground=ACCENT, font=(self.f_disp, 11, "bold"))
         self.chat.tag_configure("err", foreground=ERR)
-        self.chat.tag_configure("dim", foreground=DIM)
+        self.chat.tag_configure("dim", foreground=DIM, font=(self.f_mono, 10))
+        self.dots = hud.Dots(self.chat)
 
-        self.entry = tk.Entry(bottom, bg=PANEL, fg=TEXT, relief="flat", font=("Segoe UI", 12),
-                              insertbackground=TEXT)
-        self.entry.pack(side="left", fill="x", expand=True, ipady=8)
+        self.entry_box = tk.Frame(bottom, bg=hud.LINE, padx=1, pady=1)
+        self.entry_box.pack(side="left", fill="x", expand=True)
+        self.entry = tk.Entry(self.entry_box, bg=hud.PANEL2, fg=TEXT, relief="flat", bd=0, font=(self.f_body, 12),
+                              insertbackground=ACCENT, highlightthickness=0)
+        self.entry.pack(fill="x", ipady=10, ipadx=10)
         self.entry.bind("<Return>", lambda e: self._submit())
+        self.entry.bind("<FocusIn>", lambda e: self.entry_box.configure(bg=ACCENT))
+        self.entry.bind("<FocusOut>", lambda e: self.entry_box.configure(bg=hud.LINE))
         self.entry.focus_set()
-        self.mic_btn = self._button(bottom, "🎤 Talk", self._listen)
-        self.mic_btn.pack(side="left", padx=(8, 0))
-        self._button(bottom, "Send ➤", self._submit).pack(side="left", padx=(8, 0))
+        self.mic_btn = self._button(bottom, "🎤  Talk", self._listen)
+        self.mic_btn.pack(side="left", padx=(8, 0), fill="y")
+        self._button(bottom, "Send  ➤", self._submit, primary=True).pack(side="left", padx=(8, 0), fill="y")
         self.root.bind("<Control-space>", lambda e: self._listen())
 
-    def _button(self, parent, text, cmd, small=False):
-        return tk.Button(parent, text=text, command=cmd, bg="#1e293b", fg=TEXT, relief="flat",
-                         activebackground=ACCENT, activeforeground=BG, cursor="hand2",
-                         font=("Segoe UI", 9 if small else 11), padx=10, pady=3 if small else 6)
+    def _button(self, parent, text, cmd, small=False, primary=False):
+        return hud.GlowButton(parent, text, cmd, font=(self.f_body, 9 if small else 11, "bold" if primary else "normal"),
+                              primary=primary, padx=12 if small else 16, pady=5 if small else 9)
 
     # thread-safe UI updates: worker threads put callables on ui_q
     def _ui(self, fn, *args):
@@ -154,8 +169,13 @@ class VexorApp:
         if speak and self.speak_var.get():
             self.voice.speak(text)
 
-    def _set_status(self, text, colour=DIM):
-        self.status.configure(text=text, fg=colour)
+    def _set_status(self, text, colour=DIM, state=None):
+        self.status.configure(text=text.upper(), fg=colour)
+        if state is None:
+            low = text.lower()
+            state = ("think" if "thinking" in low or "writing" in low else "listen" if "listening" in low
+                     else "offline" if ("offline" in low or "not running" in low or "not downloaded" in low) else "idle")
+        self.core.set_state(state)
 
     # ================= behaviour =================
     def _ask_name(self):
@@ -220,6 +240,7 @@ class VexorApp:
         self.busy = True
         self._set_status("Thinking… (the first answer can take a minute)", ACCENT)
         self._write(f"{self.name}: ", "bot")
+        self.dots.start()
         speak = self.speak_var.get()  # read Tk variables on the UI thread only
 
         def work():
@@ -229,8 +250,10 @@ class VexorApp:
                 for piece in self.brain.chat_stream(text):
                     if not parts:
                         log.info("first words received")
+                        self._ui(self.dots.stop)
                     parts.append(piece)
                     self._ui(self._write, piece)
+                self._ui(self.dots.stop)
                 self._ui(self._write, "\n\n")
                 if speak:
                     self.voice.speak("".join(parts))
@@ -238,6 +261,7 @@ class VexorApp:
                 log.info("answer complete (%d chars)", len("".join(parts)))
             except Exception as e:
                 log.exception("brain request failed")
+                self._ui(self.dots.stop)
                 self.brain.history = self.brain.history[:-1]  # drop the unanswered question
                 self._ui(self._write, f"I couldn't reach my AI brain ({e}).\n"
                                       "Make sure the Ollama app is running, then click Reconnect.\n\n", "err")
@@ -253,13 +277,15 @@ class VexorApp:
             self._say("Voice input isn't available: " + self.voice.listen_error, "err", False)
             return
         self.busy = True
-        self.mic_btn.configure(text="● Listening", bg=ERR)
+        self.mic_btn.configure(text="●  Listening")
+        self.mic_btn.set_colors(ERR)
         self._set_status("Listening… speak now", ACCENT)
 
         def work():
             text, err = self.voice.listen()
             self.busy = False
-            self._ui(self.mic_btn.configure, {"text": "🎤 Talk", "bg": "#1e293b"})
+            self._ui(self.mic_btn.configure, {"text": "🎤  Talk"})
+            self._ui(self.mic_btn.set_colors, hud.PANEL2, hud.blend(hud.PANEL2, hud.CYAN, 0.28))
             if text:
                 self._ui(self._submit, text)  # sets "Thinking…" itself
             else:
